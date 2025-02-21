@@ -12,7 +12,7 @@
     "amount": {
       "type": "number"
     },
-    "number": {
+    "account": {
       "type": "string"
     },
     "date": {
@@ -24,7 +24,7 @@
   "required": [
     "operType",
     "amount",
-    "number",
+    "account",
     "date"
   ]
 }
