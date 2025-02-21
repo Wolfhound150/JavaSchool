@@ -18,7 +18,7 @@ public class ProducerService {
 
   public void sendTransaction(TransactionDto dto) {
     kafkaProducer.send(
-            new ProducerRecord<>(topicName, dto.getType().name(), dto),
+            new ProducerRecord<>(topicName, dto.getOperType().name(), dto),
             (recordMetadata, e) -> callback(recordMetadata, e, dto)
     );
     kafkaProducer.flush();
