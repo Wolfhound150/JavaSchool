@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Serializer;
 import sbp.school.kafka.dto.TransactionDto;
+import sbp.school.kafka.utils.SchemaValidator;
 
 /*Сериализатор для операции*/
 public class TransactionSerializer implements Serializer<TransactionDto> {
@@ -17,6 +18,7 @@ public class TransactionSerializer implements Serializer<TransactionDto> {
 
     try {
       String s1 = mapper.writeValueAsString(dto);
+      SchemaValidator.validate(mapper.readTree(s1), this.getClass().getResourceAsStream("/dtoTransaction-scheme.json"));
       return s1.getBytes();
     } catch (JsonProcessingException e) {
       System.out.printf("Serialization TransactionDto exception" + e + "%n");
