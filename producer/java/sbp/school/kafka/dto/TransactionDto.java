@@ -23,7 +23,7 @@ public class TransactionDto {
     this.date = date;
   }
 
-  public OperationType getType() {
+  public OperationType getOperType() {
     return operType;
   }
 
@@ -39,8 +39,8 @@ public class TransactionDto {
     return date;
   }
 
-  public void setType(OperationType type) {
-    this.operType = type;
+  public void setOperType(OperationType operType) {
+    this.operType = operType;
   }
 
   public void setAmount(BigDecimal amount) {
