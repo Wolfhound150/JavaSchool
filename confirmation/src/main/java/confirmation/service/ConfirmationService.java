@@ -8,6 +8,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import producer.service.ProducerService;
 import sbp.school.kafka.common.config.KafkaProperties;
@@ -15,7 +18,10 @@ import sbp.school.kafka.common.dto.ConfirmationDto;
 import sbp.school.kafka.common.dto.TransactionDto;
 import sbp.school.kafka.common.repository.TransactionRepository;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,19 +31,26 @@ import static java.util.Objects.nonNull;
 
 public class ConfirmationService  {
   private final KafkaConsumer<String, ConfirmationDto> consumer;
+  private final KafkaProducer<String, ConfirmationDto> producer;
   private final ProducerService producerService;
   private final Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
 
   public ConfirmationService() {
     consumer = KafkaConfirmationConfig.getConfoConsumer();
     this.producerService = new ProducerService();
+    producer = KafkaConfirmationConfig.GetConfoProducer();
+    try {
+      TransactionRepository.createTable();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void listen() {
     try {
       consumer.subscribe(
               Collections.singleton(
-                      KafkaProperties.getConfoProperties().getProperty(KafkaProperties.CONFIRMATION_TOPIC)
+                      KafkaProperties.getConfoConsumerProperties().getProperty(KafkaProperties.CONFIRMATION_TOPIC)
               )
       );
       consumer.assignment().forEach(this::commit);
@@ -58,7 +71,7 @@ public class ConfirmationService  {
 
           checkHashSum(consumerRecord.value().getCheckSum(), 
                   consumerRecord.value().getTimestamp(),
-                  Long.parseLong(KafkaProperties.getConfoProperties().getProperty(KafkaProperties.CONFIRMATION_DELAY)));
+                  Long.parseLong(KafkaProperties.getConfoConsumerProperties().getProperty(KafkaProperties.CONFIRMATION_DELAY)));
 
           offsets.put(
                   new TopicPartition(consumerRecord.topic(), consumerRecord.partition()),
@@ -68,7 +81,7 @@ public class ConfirmationService  {
         consumer.commitAsync();
       }
     } catch (Exception e) {
-      System.out.println("Error :" + e);
+      System.out.println("Processing Confirmation message error :" + e);
     } finally {
       try {
         consumer.commitSync();
@@ -77,8 +90,42 @@ public class ConfirmationService  {
       }
 
     }
+  }
 
+  public void sendConfo() {
+    String ts = Timestamp.from(
+            Instant.now().minus(Duration.ofMinutes(
+                    Long.parseLong(
+                            KafkaProperties.getConfoProducerProperties().getProperty(KafkaProperties.CONFIRMATION_GAP)
+                    )
+            ))
+    ).toString();
+    List<TransactionDto> transDto =
+            TransactionRepository.getTransactionsByTimeDuration(ts,
+                    Long.valueOf(KafkaProperties.getConfoConsumerProperties().getProperty(KafkaProperties.CONFIRMATION_DELAY)));
 
+    ConfirmationDto confo = new ConfirmationDto(ts, getCheckSum(transDto));
+
+    try {
+      producer.send(
+              new ProducerRecord<>(KafkaProperties.getConfoConsumerProperties().getProperty(KafkaProperties.CONFIRMATION_TOPIC), confo),
+              ((recordMetadata, e) -> callback(recordMetadata, e, confo))
+      );
+    } finally {
+      producer.flush(); /*сливаем, что бы не ждать пачку*/
+    }
+
+  }
+
+  private void callback(RecordMetadata metadata, Exception e, ConfirmationDto dto) {
+    if (e!=null) {
+      System.out.printf("Sending message error! Offset: %s, Partition: %s, Error: %s%n",
+              metadata.offset(),
+              metadata.partition(),
+              e.getMessage());
+    } else
+    {
+      System.out.println("Sending message success: " + dto);}
   }
 
   private void commit(TopicPartition prtn) {
@@ -88,6 +135,7 @@ public class ConfirmationService  {
     }
   }
 
+/*сверка списка с сохраненным дайджестом*/
   private void checkHashSum(String checkSum, String timestamp, Long duration) {
     List<TransactionDto> transactionDtoList = TransactionRepository.getTransactionsByTimeDuration(timestamp, duration);
 
@@ -96,15 +144,19 @@ public class ConfirmationService  {
               transaction -> {
                 try {
                 System.out.println(new ObjectMapper().writeValueAsString(transaction));
-              } catch (JsonProcessingException e) {
+                } catch (JsonProcessingException e) {
+                  System.out.println("Mapping error in TransactionDto " + transaction);
                   throw new RuntimeException();
-              }
+                }
               producerService.sendTransaction(transaction);
               }
       );
-  }
+    } else {
+      System.out.println("Confirmed transactions will be removed");
+      TransactionRepository.deleteOldCompletedTransactions(timestamp, duration);
+    }
 }
-
+/*ганератор дайджеста по списку транзакций*/
   private String getCheckSum(List<TransactionDto> transactionDtoList) {
     try {
       List<String> items = transactionDtoList.stream().map(TransactionDto::getId).toList();

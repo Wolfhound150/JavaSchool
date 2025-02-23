@@ -14,6 +14,8 @@ public class KafkaProperties {
   public static final String CONFIRMATION_PROPERTIES_FILE = "confirmation.properties";
   public static final String CONFIRMATION_TOPIC = "confirm.transaction.topic";
   public static final String CONFIRMATION_DELAY = "confirm.check.timeout";
+  public static final String CONFIRMATION_GAP = "confirm.check.gap";
+  public static final String CONFIRMATION_GROUP = "confirm.group.id";
 
 
   public static Properties getProducerProperties() {
@@ -48,7 +50,17 @@ public class KafkaProperties {
     appProps.put(prop, propValue);
   }
 
-  public static Properties getConfoProperties() {
+  public static Properties getConfoConsumerProperties() {
+    Properties fileProps = PropertiesLoader.loadProperties(CONFIRMATION_PROPERTIES_FILE);
+    Properties appProps = new Properties();
+    loadProp(appProps, fileProps, ProducerConfig.BOOTSTRAP_SERVERS_CONFIG);
+    loadProp(appProps, fileProps, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG);
+    loadProp(appProps, fileProps, ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG);
+    loadProp(appProps, fileProps, CONFIRMATION_GROUP);
+    return appProps;
+  }
+
+  public static Properties getConfoProducerProperties() {
     Properties fileProps = PropertiesLoader.loadProperties(CONFIRMATION_PROPERTIES_FILE);
     Properties appProps = new Properties();
     loadProp(appProps, fileProps, ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
@@ -57,6 +69,7 @@ public class KafkaProperties {
     loadProp(appProps, fileProps, ConsumerConfig.GROUP_ID_CONFIG);
     loadProp(appProps, fileProps, CONFIRMATION_TOPIC);
     loadProp(appProps, fileProps, CONFIRMATION_DELAY);
+    loadProp(appProps, fileProps, CONFIRMATION_GAP);
     return appProps;
   }
 }

@@ -1,7 +1,6 @@
 package sbp.school.kafka.common.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.h2.jdbcx.JdbcDataSource;
 import sbp.school.kafka.common.dto.TransactionDto;
@@ -63,6 +62,22 @@ public class TransactionRepository {
       throw new RuntimeException(e);
     }
 
+  }
+/*удаление транзакций по дате&гэпу*/
+  public static void deleteOldCompletedTransactions(String timestamp, Long duration) {
+    try {
+      Connection conn = DriverManager.getConnection(JDBC_URL);
+      PreparedStatement statement = conn.prepareStatement(
+              "delete from transactions WHERE date " +
+               ">= cast (? as timestamp) - cast (? as interval second)"
+      );
+        statement.setTimestamp(1, Timestamp.valueOf(timestamp));
+        statement.setLong(2, Integer.parseInt(String.valueOf(duration)));
+        statement.execute();
+
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
 

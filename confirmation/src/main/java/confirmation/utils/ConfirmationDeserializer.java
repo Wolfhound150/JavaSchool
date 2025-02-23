@@ -7,6 +7,7 @@ import sbp.school.kafka.common.utils.SchemaValidator;
 
 import java.io.IOException;
 
+/*десериализатор для подтверждений*/
 public class ConfirmationDeserializer implements Deserializer<TransactionDto> {
   private static final String TRANSACTION_JSON = "/dtoConfo-scheme.json";
   @Override

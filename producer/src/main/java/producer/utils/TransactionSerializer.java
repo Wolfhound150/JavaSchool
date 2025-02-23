@@ -9,7 +9,7 @@ import sbp.school.kafka.common.utils.SchemaValidator;
 /*Сериализатор для операции*/
 public class TransactionSerializer implements Serializer<TransactionDto> {
 
-  private static final String TRANSACTION_JSON = "common/src/main/resources/json/dtoTransaction-scheme.json";
+  //private static final String TRANSACTION_JSON = "common/src/main/resources/json/dtoTransaction-scheme.json";
   @Override
   public byte[] serialize(String s, TransactionDto dto) {
     if (dto == null) {

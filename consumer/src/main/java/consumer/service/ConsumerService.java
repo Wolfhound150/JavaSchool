@@ -1,6 +1,7 @@
 package consumer.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import confirmation.service.ConfirmationService;
 import consumer.config.KafkaConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -19,10 +20,13 @@ import static java.util.Objects.nonNull;
 
 public class ConsumerService {
   private final KafkaConsumer<String, TransactionDto> consumer;
+  private final ConfirmationService confirm;
   private final Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
 
   public ConsumerService(String groupId) {
     consumer = KafkaConsumerConfig.getKafkaConsumer(groupId);
+    confirm = new ConfirmationService();
+
   }
 
   public void listen() {
@@ -50,6 +54,7 @@ public class ConsumerService {
                   new OffsetAndMetadata(record.offset() + 1L,"metadata empty")
           );
         }
+        confirm.sendConfo();
         consumer.commitAsync();
       }
     } catch (Exception e) {
