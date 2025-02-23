@@ -14,6 +14,8 @@
         <module>producer</module>
         <module>consumer</module>
         <module>confirmation</module>
+        <module>connector</module>
+
     </modules>
 
     <properties>
@@ -21,6 +23,9 @@
         <junit.jupiter.version>5.11.4</junit.jupiter.version>
         <jackson.databind.version>2.18.1</jackson.databind.version>
         <json-schema-validator.version>1.5.4</json-schema-validator.version>
+        <postgresql.version>42.7.2</postgresql.version>
+        <hibernate-core.version>6.4.4.Final</hibernate-core.version>
+        <kafka-connect.version>3.3.2</kafka-connect.version>
         <h2.version>2.2.220</h2.version>
     </properties>
 
@@ -57,6 +62,24 @@
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>${h2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${hibernate-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>connect-api</artifactId>
+                <version>${kafka-connect.version}</version>
             </dependency>
 
             <dependency>
