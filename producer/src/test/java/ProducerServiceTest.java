@@ -6,6 +6,7 @@ import producer.service.ProducerService;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.UUID;
 
 class ProducerServiceTest {
 
@@ -14,6 +15,7 @@ class ProducerServiceTest {
     ProducerService service = new ProducerService();
     Assertions.assertDoesNotThrow(() -> service.sendTransaction(
             new TransactionDto(
+                    UUID.randomUUID().toString().replace("-", ""),
                     OperationType.CREDIT,
                     BigDecimal.ONE,
                     "544531",

@@ -8,6 +8,7 @@ import java.util.Calendar;
 /*Денежная транзакция*/
 public class TransactionDto {
 
+  private String id;
   private OperationType operType;
   private BigDecimal amount;
   private String account;
@@ -16,7 +17,8 @@ public class TransactionDto {
   public TransactionDto() {
   }
 
-  public TransactionDto(OperationType operType, BigDecimal amount, String account, Calendar date) {
+  public TransactionDto(String id, OperationType operType, BigDecimal amount, String account, Calendar date) {
+    this.id = id;
     this.operType = operType;
     this.amount = amount;
     this.account = account;
@@ -53,5 +55,13 @@ public class TransactionDto {
 
   public void setDate(Calendar date) {
     this.date = date;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 }

@@ -10,6 +10,12 @@ public class KafkaProperties {
   public static final String PRODUCER_PROPERTIES_FILE = "producer.properties";
   public static final String COMMON_PROPERTIES_FILE = "common.properties";
 
+  /*переменные под подтверждение транзакций*/
+  public static final String CONFIRMATION_PROPERTIES_FILE = "confirmation.properties";
+  public static final String CONFIRMATION_TOPIC = "confirm.transaction.topic";
+  public static final String CONFIRMATION_DELAY = "confirm.check.timeout";
+
+
   public static Properties getProducerProperties() {
     Properties fileProps = PropertiesLoader.loadProperties(PRODUCER_PROPERTIES_FILE);
     Properties appProps = new Properties();
@@ -40,5 +46,17 @@ public class KafkaProperties {
     String propValue = fileProps.getProperty(prop);
     System.out.println();
     appProps.put(prop, propValue);
+  }
+
+  public static Properties getConfoProperties() {
+    Properties fileProps = PropertiesLoader.loadProperties(CONFIRMATION_PROPERTIES_FILE);
+    Properties appProps = new Properties();
+    loadProp(appProps, fileProps, ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
+    loadProp(appProps, fileProps, ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
+    loadProp(appProps, fileProps, ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG);
+    loadProp(appProps, fileProps, ConsumerConfig.GROUP_ID_CONFIG);
+    loadProp(appProps, fileProps, CONFIRMATION_TOPIC);
+    loadProp(appProps, fileProps, CONFIRMATION_DELAY);
+    return appProps;
   }
 }
