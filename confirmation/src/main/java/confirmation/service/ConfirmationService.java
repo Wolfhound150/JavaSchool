@@ -4,11 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import confirmation.config.KafkaConfirmationConfig;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
@@ -30,13 +30,13 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 
 public class ConfirmationService  {
-  private final KafkaConsumer<String, ConfirmationDto> consumer;
-  private final KafkaProducer<String, ConfirmationDto> producer;
+  private Consumer<String, ConfirmationDto> consumer;
+  private Producer<String, ConfirmationDto> producer;
   private final ProducerService producerService;
   private final Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
 
-  public ConfirmationService() {
-    consumer = KafkaConfirmationConfig.getConfoConsumer();
+  public ConfirmationService(String groupId) {
+    consumer = KafkaConfirmationConfig.getConfoConsumer(groupId);
     this.producerService = new ProducerService();
     producer = KafkaConfirmationConfig.GetConfoProducer();
     try {
@@ -157,12 +157,20 @@ public class ConfirmationService  {
     }
 }
 /*ганератор дайджеста по списку транзакций*/
-  private String getCheckSum(List<TransactionDto> transactionDtoList) {
+  public static String getCheckSum(List<TransactionDto> transactionDtoList) {
     try {
       List<String> items = transactionDtoList.stream().map(TransactionDto::getId).toList();
       return DigestUtils.sha256Hex(String.join("",items));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void setProducer(Producer<String, ConfirmationDto> producer) {
+    this.producer = producer;
+  }
+
+  public void setConsumer(Consumer<String, ConfirmationDto> consumer) {
+    this.consumer = consumer;
   }
 }

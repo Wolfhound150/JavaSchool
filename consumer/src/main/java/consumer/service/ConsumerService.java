@@ -3,10 +3,7 @@ package consumer.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import confirmation.service.ConfirmationService;
 import consumer.config.KafkaConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 import sbp.school.kafka.common.config.KafkaProperties;
 import sbp.school.kafka.common.dto.TransactionDto;
@@ -19,13 +16,13 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 
 public class ConsumerService {
-  private final KafkaConsumer<String, TransactionDto> consumer;
+  private Consumer<String, TransactionDto> consumer;
   private final ConfirmationService confirm;
   private final Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
 
-  public ConsumerService(String groupId) {
-    consumer = KafkaConsumerConfig.getKafkaConsumer(groupId);
-    confirm = new ConfirmationService();
+  public ConsumerService(String groupId, ConfirmationService confirm) {
+    this.consumer = KafkaConsumerConfig.getKafkaConsumer(groupId);
+    this.confirm = new ConfirmationService(groupId);
 
   }
 
@@ -73,5 +70,9 @@ public class ConsumerService {
     if (nonNull(offsetAndMetadata)) {
       consumer.seek(prtn, offsetAndMetadata);
     }
+  }
+
+  public void setConsumer(Consumer<String, TransactionDto> consumer) {
+    this.consumer = consumer;
   }
 }

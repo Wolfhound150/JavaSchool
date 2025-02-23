@@ -2,7 +2,7 @@ package producer.service;
 
 import producer.config.KafkaProducerConfig;
 import sbp.school.kafka.common.config.KafkaProperties;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import sbp.school.kafka.common.dto.TransactionDto;
@@ -12,11 +12,11 @@ import java.sql.SQLException;
 
 public class ProducerService {
 
-  private final KafkaProducer<String, TransactionDto> kafkaProducer;
+  private Producer<String, TransactionDto> producer;
   private final String topic;
 
   public ProducerService() {
-    this.kafkaProducer = KafkaProducerConfig.getKafkaProducer();
+    this.producer = KafkaProducerConfig.getKafkaProducer();
     this.topic = KafkaProperties.getTransactionTopic();
     try {
       TransactionRepository.createTable();
@@ -25,12 +25,17 @@ public class ProducerService {
     }
   }
 
+  public void setProducer(Producer<String, TransactionDto> producer) {
+    this.producer = producer;
+  }
+
+
   public void sendTransaction(TransactionDto dto) {
-    kafkaProducer.send(
+    producer.send(
             new ProducerRecord<>(topic, dto.getOperType().name(), dto),
             (recordMetadata, e) -> callback(recordMetadata, e, dto)
     );
-    kafkaProducer.flush();
+    producer.flush();
   }
 
   private void callback(RecordMetadata metadata, Exception e, TransactionDto dto) {
