@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "operType": {
+      "type": "string",
+      "enum": [
+        "DEBIT",
+        "CREDIT"
+      ]
+    },
+    "amount": {
+      "type": "number"
+    },
+    "account": {
+      "type": "string"
+    },
+    "date": {
+      "type": "number",
+      "format": "date"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "operType",
+    "amount",
+    "account",
+    "date"
+  ]
+}
